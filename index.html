@@ -342,7 +342,7 @@
                 </select>
             </div>
         </div>
-
+        <button onclick="carregarPlanilhaPadrao()">📥 Carregar Planilha Padrão</button>
         <button id="btnGerar" onclick="gerarRotulo()">🖨️ Gerar e Visualizar Rótulo</button>
         <button id="btnImprimir" onclick="window.print()" style="display:none; background:#4caf50; margin-top:10px;">
             📄 Imprimir / Salvar PDF
@@ -401,7 +401,26 @@
             </div>
         </div>
     </div>
-
+    <script>
+async function carregarPlanilhaPadrao() {
+    try {
+        const response = await fetch('residuos.xlsx');
+        const arrayBuffer = await response.arrayBuffer();
+        const data = new Uint8Array(arrayBuffer);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        
+        // ... resto do código de processamento
+        dadosResiduos = jsonData;
+        // preencher select etc
+        
+        showAlert('✅ Planilha padrão carregada!', 'success');
+    } catch (error) {
+        showAlert('❌ Erro ao carregar planilha padrão', 'error');
+    }
+}
+</script>
     <script>
         let dadosResiduos = [];
 
