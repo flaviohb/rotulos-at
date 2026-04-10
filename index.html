@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Rótulos - CEMIG</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #003366;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .upload-section {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 2px dashed #003366;
+        }
+
+        .upload-section h3 {
+            color: #003366;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        button {
+            background: #003366;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #005599;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        /* ESTILOS DO RÓTULO PARA IMPRESSÃO */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            #rotulo, #rotulo * {
+                visibility: visible;
+            }
+            
+            #rotulo {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+
+            .container, .upload-section, .form-group, button {
+                display: none !important;
+            }
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 15mm;
+        }
+
+        #rotulo {
+            display: none;
+            width: 277mm;
+            height: 190mm;
+            padding: 20mm;
+            background: white;
+            border: 3px solid #000;
+            page-break-after: always;
+        }
+
+        #rotulo.active {
+            display: block;
+            margin: 30px auto;
+        }
+
+        .rotulo-header {
+            text-align: center;
+            border-bottom: 3px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .rotulo-header h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .rotulo-content {
+            display: grid;
+            grid-template-columns: 1fr 180px;
+            gap: 30px;
+            height: calc(100% - 100px);
+        }
+
+        .rotulo-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .info-item {
+            border: 2px solid #333;
+            padding: 12px;
+            border-radius: 5px;
+        }
+
+        .info-item label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-item .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .rotulo-simbolo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #000;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .rotulo-simbolo img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+        }
+
+        .numero-onu {
+            background: #FF6600;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .numero-onu .label {
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        .numero-onu .value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .empresa-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #333;
+        }
+
+        .empresa-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .limites-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .limite-item {
+            background: #fff3cd;
+            border: 2px solid #856404;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .limite-item .label {
+            font-size: 11px;
+            color: #856404;
+        }
+
+        .limite-item .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏷️ Sistema de Rótulos para Transporte de Resíduos</h1>
+
+        <div class="alert" id="alert"></div>
+
+        <!-- UPLOAD DA PLANILHA -->
+        <div class="upload-section">
+            <h3>1️⃣ Importar Planilha de Resíduos</h3>
+            
+            <div class="form-group">
+                <label>Selecione a planilha Excel (.xlsx):</label>
+                <input type="file" id="fileResiduos" accept=".xlsx,.xls">
+                <div class="info-box" id="infoResiduos" style="display:none;">
+                    <p>✅ <strong id="countResiduos">0</strong> resíduos carregados com sucesso!</p>
+                    <p style="font-size: 12px; margin-top: 10px;">💡 Pressione F12 e veja a aba "Console" para informações de debug</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULÁRIO -->
+        <div class="form-group">
+            <label>2️⃣ Selecione o Resíduo:</label>
+            <select id="selectResiduo" disabled>
+                <option value="">Carregue a planilha primeiro</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Empresa Geradora:</label>
+                <select id="selectEmpresa">
+                    <option value="CEMIG GERAÇÃO E TRANSMISSÃO|06.981.176/0001-58">CEMIG GERAÇÃO E TRANSMISSÃO</option>
+                    <option value="CEMIG Distribuição|06.981.180/0001-16">CEMIG Distribuição</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Órgão Gerador (Gerência):</label>
+                <input type="text" id="orgaoGerador" placeholder="Ex: Gerência de Manutenção">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Quantidade:</label>
+                <input type="number" id="quantidade" step="0.01" min="0" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label>Unidade:</label>
+                <select id="unidade">
+                    <option value="kg">Quilogramas (kg)</option>
+                    <option value="L">Litros (L)</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="btnGerar" onclick="gerarRotulo()">🖨️ Gerar e Visualizar Rótulo</button>
+        <button id="btnImprimir" onclick="window.print()" style="display:none; background:#4caf50; margin-top:10px;">
+            📄 Imprimir / Salvar PDF
+        </button>
+    </div>
+
+    <!-- RÓTULO (oculto até gerar) -->
+    <div id="rotulo">
+        <div class="rotulo-header">
+            <h2>RESÍDUO PERIGOSO PARA TRANSPORTE</h2>
+            <p style="font-size: 14px;">Conforme NBR 10.004 e Regulamentação de Transporte de Produtos Perigosos</p>
+        </div>
+
+        <div class="rotulo-content">
+            <div class="rotulo-info">
+                <div class="info-item">
+                    <label>DESCRIÇÃO DO RESÍDUO:</label>
+                    <div class="value" id="lblDescricao">-</div>
+                </div>
+
+                <div class="info-item">
+                    <label>NOME APROPRIADO PARA EMBARQUE:</label>
+                    <div class="value" id="lblEmbarque">-</div>
+                </div>
+
+                <div class="info-item">
+                    <label>QUANTIDADE / PESO:</label>
+                    <div class="value" id="lblQuantidade">-</div>
+                </div>
+
+                <div class="empresa-box">
+                    <label style="font-size: 12px; color: #666;">EMPRESA GERADORA:</label>
+                    <p style="font-weight: bold; font-size: 16px;" id="lblEmpresa">-</p>
+                    <p style="font-size: 13px;">CNPJ: <strong id="lblCNPJ">-</strong></p>
+                    <p style="font-size: 13px; margin-top: 8px;">Órgão: <strong id="lblOrgao">-</strong></p>
+                </div>
+
+                <div class="limites-box">
+                    <div class="limite-item">
+                        <div class="label">Limite por Veículo</div>
+                        <div class="value" id="lblLimiteVeiculo">-</div>
+                    </div>
+                    <div class="limite-item">
+                        <div class="label">Limite por Embalagem</div>
+                        <div class="value" id="lblLimiteEmbalagem">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rotulo-simbolo">
+                <img id="imgClasse" src="" alt="Classe de Risco">
+                <div class="numero-onu">
+                    <div class="label">NÚMERO ONU</div>
+                    <div class="value" id="lblNumeroONU">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dadosResiduos = [];
+
+        // CARREGAR PLANILHA DE RESÍDUOS
+        document.getElementById('fileResiduos').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                    dadosResiduos = jsonData;
+                    
+                    // Debug: mostrar TODAS as colunas do primeiro item
+                    if (jsonData.length > 0) {
+                        console.log('=== DEBUG: COLUNAS DA PLANILHA ===');
+                        console.log('Total de colunas:', Object.keys(jsonData[0]).length);
+                        Object.keys(jsonData[0]).forEach((key, index) => {
+                            console.log(`Coluna ${index + 1}: "${key}" = "${jsonData[0][key]}"`);
+                        });
+                        console.log('=== FIM DEBUG ===');
+                    }
+                    
+                    // Preencher select
+                    const select = document.getElementById('selectResiduo');
+                    select.innerHTML = '<option value="">Selecione um resíduo</option>';
+                    
+                    jsonData.forEach((item, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = item['Descrição do Resíduo pelo Gerador'];
+                        select.appendChild(option);
+                    });
+
+                    select.disabled = false;
+                    document.getElementById('infoResiduos').style.display = 'block';
+                    document.getElementById('countResiduos').textContent = jsonData.length;
+                    showAlert('✅ Planilha carregada! Pressione F12 e veja o Console para ver os nomes das colunas.', 'success');
+                } catch (error) {
+                    showAlert('❌ Erro ao ler planilha: ' + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // GERAR RÓTULO
+        function gerarRotulo() {
+            const residuoIndex = document.getElementById('selectResiduo').value;
+            const quantidade = document.getElementById('quantidade').value;
+            const unidade = document.getElementById('unidade').value;
+            const orgaoGerador = document.getElementById('orgaoGerador').value;
+            const empresaSelect = document.getElementById('selectEmpresa').value.split('|');
+
+            // Validações
+            if (!residuoIndex) {
+                showAlert('⚠️ Selecione um resíduo!', 'error');
+                return;
+            }
+
+            if (!quantidade || quantidade <= 0) {
+                showAlert('⚠️ Informe a quantidade!', 'error');
+                return;
+            }
+
+            if (!orgaoGerador.trim()) {
+                showAlert('⚠️ Informe o órgão gerador!', 'error');
+                return;
+            }
+
+            const residuo = dadosResiduos[residuoIndex];
+
+            // Debug completo do resíduo selecionado
+            console.log('=== RESÍDUO SELECIONADO ===');
+            console.log(residuo);
+            console.log('=== BUSCANDO LIMITES ===');
+
+            // Preencher rótulo
+            document.getElementById('lblDescricao').textContent = residuo['Descrição do Resíduo pelo Gerador'] || '-';
+            document.getElementById('lblEmbarque').textContent = residuo['Nome apropriado para embarque'] || '-';
+            document.getElementById('lblQuantidade').textContent = `${quantidade} ${unidade}`;
+            document.getElementById('lblEmpresa').textContent = empresaSelect[0];
+            document.getElementById('lblCNPJ').textContent = empresaSelect[1];
+            document.getElementById('lblOrgao').textContent = orgaoGerador;
+            document.getElementById('lblNumeroONU').textContent = residuo['Número da ONU'] || '-';
+
+            // Buscar limites - testar várias possibilidades
+            let limiteVeiculo = null;
+            let limiteEmbalagem = null;
+
+            // Procurar nas chaves do objeto
+            for (let key in residuo) {
+                console.log(`Verificando chave: "${key}"`);
+                
+                // Limite Veículo
+                if (key.includes('Veículo') || key.includes('Veiculo') || key.includes('VEÍCULO')) {
+                    limiteVeiculo = residuo[key];
+                    console.log('✅ Limite Veículo encontrado:', limiteVeiculo, 'na chave:', key);
+                }
+                
+                // Limite Embalagem
+                if (key.includes('Embalagem') || key.includes('EMBALAGEM')) {
+                    limiteEmbalagem = residuo[key];
+                    console.log('✅ Limite Embalagem encontrado:', limiteEmbalagem, 'na chave:', key);
+                }
+            }
+
+            console.log('Limite Veículo final:', limiteVeiculo);
+            console.log('Limite Embalagem final:', limiteEmbalagem);
+
+            document.getElementById('lblLimiteVeiculo').textContent = limiteVeiculo || 'Não informado';
+            document.getElementById('lblLimiteEmbalagem').textContent = limiteEmbalagem || 'Não informado';
+
+            // Imagem da classe
+            const rotuloRisco = residuo['Rótulo de Risco'];
+            if (rotuloRisco) {
+                document.getElementById('imgClasse').src = `${rotuloRisco}.png`;
+                document.getElementById('imgClasse').onerror = function() {
+                    showAlert('⚠️ Imagem não encontrada: ' + rotuloRisco + '.png', 'error');
+                };
+            }
+
+            // Mostrar rótulo
+            document.getElementById('rotulo').classList.add('active');
+            document.getElementById('btnImprimir').style.display = 'block';
+
+            // Scroll até o rótulo
+            setTimeout(() => {
+                document.getElementById('rotulo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            showAlert('✅ Rótulo gerado! Verifique o Console (F12) se os limites não aparecerem.', 'success');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.style.background = type === 'success' ? '#d4edda' : '#f8d7da';
+            alert.style.color = type === 'success' ? '#155724' : '#721c24';
+            alert.style.border = type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb';
+            alert.classList.add('show');
+
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
