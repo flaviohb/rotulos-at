@@ -404,20 +404,55 @@
     <script>
 async function carregarPlanilhaPadrao() {
     try {
-        const response = await fetch('residuos.xlsx');
+        showAlert('⏳ Carregando planilha padrão...', 'success');
+        
+        // Nome do arquivo com espaço - codificado para URL
+        const response = await fetch('Planilha%20rotulos.xlsx');
+        
+        if (!response.ok) {
+            throw new Error('Arquivo não encontrado (código ' + response.status + ')');
+        }
+        
         const arrayBuffer = await response.arrayBuffer();
         const data = new Uint8Array(arrayBuffer);
         const workbook = XLSX.read(data, {type: 'array'});
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-        
-        // ... resto do código de processamento
+
         dadosResiduos = jsonData;
-        // preencher select etc
         
-        showAlert('✅ Planilha padrão carregada!', 'success');
+        // Debug
+        if (jsonData.length > 0) {
+            console.log('=== PLANILHA PADRÃO CARREGADA ===');
+            console.log('Total de resíduos:', jsonData.length);
+            console.log('Primeiro item:', jsonData[0]);
+            
+            // Mostrar colunas
+            Object.keys(jsonData[0]).forEach((key, index) => {
+                console.log(`Coluna ${index + 1}: "${key}"`);
+            });
+        }
+        
+        // Preencher select
+        const select = document.getElementById('selectResiduo');
+        select.innerHTML = '<option value="">Selecione um resíduo</option>';
+        
+        jsonData.forEach((item, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = item['Descrição do Resíduo pelo Gerador'];
+            select.appendChild(option);
+        });
+
+        select.disabled = false;
+        document.getElementById('infoResiduos').style.display = 'block';
+        document.getElementById('countResiduos').textContent = jsonData.length;
+        
+        showAlert('✅ Planilha padrão carregada! ' + jsonData.length + ' resíduos disponíveis.', 'success');
+        
     } catch (error) {
-        showAlert('❌ Erro ao carregar planilha padrão', 'error');
+        console.error('Erro detalhado:', error);
+        showAlert('❌ Erro: ' + error.message + '. Verifique se o arquivo "Planilha rotulos.xlsx" está no repositório.', 'error');
     }
 }
 </script>
