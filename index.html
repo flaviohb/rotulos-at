@@ -114,6 +114,14 @@
 
         /* ESTILOS DO RÓTULO PARA IMPRESSÃO */
         @media print {
+            html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                background: transparent;
+            }
+
             body * {
                 visibility: hidden;
             }
@@ -127,6 +135,12 @@
                 left: 0;
                 top: 0;
                 width: 100%;
+                height: auto;
+                margin: 0;
+                padding: 10mm;
+                box-sizing: border-box;
+                page-break-inside: avoid;
+                page-break-after: avoid;
             }
 
             .container, .upload-section, .form-group, button {
@@ -136,17 +150,17 @@
 
         @page {
             size: A4 landscape;
-            margin: 15mm;
+            margin: 10mm;
         }
 
         #rotulo {
             display: none;
             width: 277mm;
             height: 190mm;
-            padding: 20mm;
+            padding: 10mm;
             background: white;
             border: 3px solid #000;
-            page-break-after: always;
+            box-sizing: border-box;
         }
 
         #rotulo.active {
