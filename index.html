@@ -137,7 +137,7 @@
                 width: 100%;
                 height: auto;
                 margin: 0;
-                padding: 10mm;
+                padding: 5mm;
                 box-sizing: border-box;
                 page-break-inside: avoid;
                 page-break-after: avoid;
@@ -150,14 +150,14 @@
 
         @page {
             size: A4 landscape;
-            margin: 10mm;
+            margin: 5mm;
         }
 
         #rotulo {
             display: none;
             width: 277mm;
-            height: 190mm;
-            padding: 10mm;
+            height: 187mm;
+            padding: 8mm;
             background: white;
             border: 3px solid #000;
             box-sizing: border-box;
@@ -356,7 +356,6 @@
                 </select>
             </div>
         </div>
-        <button onclick="carregarPlanilhaPadrao()">📥 Carregar Planilha Padrão</button>
         <button id="btnGerar" onclick="gerarRotulo()">🖨️ Gerar e Visualizar Rótulo</button>
         <button id="btnImprimir" onclick="window.print()" style="display:none; background:#4caf50; margin-top:10px;">
             📄 Imprimir / Salvar PDF
@@ -469,6 +468,8 @@ async function carregarPlanilhaPadrao() {
         showAlert('❌ Erro: ' + error.message + '. Verifique se o arquivo "Planilha rotulos.xlsx" está no repositório.', 'error');
     }
 }
+
+document.addEventListener('DOMContentLoaded', carregarPlanilhaPadrao);
 </script>
     <script>
         let dadosResiduos = [];
