@@ -399,8 +399,8 @@
                         <div class="value" id="lblLimiteVeiculo">-</div>
                     </div>
                     <div class="limite-item">
-                        <div class="label">Limite por Embalagem</div>
-                        <div class="value" id="lblLimiteEmbalagem">-</div>
+                        <div class="label">Acondicionamento sugerido:</div>
+                        <div class="value" id="lblAcondicionamento">-</div>
                     </div>
                 </div>
             </div>
@@ -563,7 +563,7 @@ document.addEventListener('DOMContentLoaded', carregarPlanilhaPadrao);
 
             // Buscar limites - testar várias possibilidades
             let limiteVeiculo = null;
-            let limiteEmbalagem = null;
+            let acondicionamento = null;
 
             // Procurar nas chaves do objeto
             for (let key in residuo) {
@@ -575,18 +575,18 @@ document.addEventListener('DOMContentLoaded', carregarPlanilhaPadrao);
                     console.log('✅ Limite Veículo encontrado:', limiteVeiculo, 'na chave:', key);
                 }
                 
-                // Limite Embalagem
-                if (key.includes('Embalagem') || key.includes('EMBALAGEM')) {
-                    limiteEmbalagem = residuo[key];
-                    console.log('✅ Limite Embalagem encontrado:', limiteEmbalagem, 'na chave:', key);
+                // Acondicionamento
+                if (key.includes('Acondicionamento') || key.includes('ACONDICIONAMENTO')) {
+                    acondicionamento = residuo[key];
+                    console.log('✅ Acondicionamento encontrado:', acondicionamento, 'na chave:', key);
                 }
             }
 
             console.log('Limite Veículo final:', limiteVeiculo);
-            console.log('Limite Embalagem final:', limiteEmbalagem);
+            console.log('Acondicionamento final:', acondicionamento);
 
             document.getElementById('lblLimiteVeiculo').textContent = limiteVeiculo || 'Não informado';
-            document.getElementById('lblLimiteEmbalagem').textContent = limiteEmbalagem || 'Não informado';
+            document.getElementById('lblAcondicionamento').textContent = acondicionamento || 'Não informado';
 
             // Imagem da classe
             const rotuloRisco = residuo['Rótulo de Risco'];
